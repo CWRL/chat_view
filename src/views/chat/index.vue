@@ -16,14 +16,14 @@
               </div>
               <div v-if="(value.message.file.length !== 0 && !value.message.text) ? true : false">
                 <div v-for="valuess in value.message.file">
-                  <div
-                    v-if="(valuess.split('@type:')[1] === 'jpg' || valuess.split('@type:')[1] === 'png') ? true : false">
-                    <el-image :src="valuess.split('@name:')[0]" fit="fill" class="img_show" />
+                  <div v-if="(valuess.type === 'jpg' || valuess.type === 'png') ? true : false">
+                    <el-image :src="valuess.showurl" fit="fill" class="img_show" />
                   </div>
                   <div v-else class="image_shuru_box1" @click="download(valuess)">
-                    <span class="image_span1">{{ valuess.split('@name:')[1].split('@data:')[0].split('@type:')[0]
-                    }}</span>
-                    <el-image :src="valuess.split('@name:')[0]" fit="fill" class="img_show1" />
+                      <div class="image_shuru_box1">
+                        <span class="image_span1">{{ valuess.name }}</span>
+                        <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
+                      </div>
                   </div>
                 </div>
               </div>
@@ -32,18 +32,18 @@
               </div>
               <div class="message_box3" v-if="(value.message.file.length !== 0 && value.message.text) ? true : false">
                 <span class="message_box2_sapn">
-                  {{ value.message.text}}
+                  {{ value.message.text }}
                 </span>
                 <br>
                 <div v-for="valuess in value.message.file">
-                  <div
-                    v-if="(valuess.split('@type:')[1] === 'jpg' || valuess.split('@type:')[1] === 'png') ? true : false">
-                    <el-image :src="valuess.split('@name:')[0]" fit="fill" class="img_show" />
+                  <div v-if="(valuess.type === 'jpg' || valuess.type === 'png') ? true : false">
+                    <el-image :src="valuess.showurl" fit="fill" class="img_show" />
                   </div>
-                  <div v-else class="image_shuru_box1" @click="download(valuess)">
-                    <span class="image_span1">{{ valuess.split('@name:')[1].split('@data:')[0].split('@type:')[0]
-                    }}</span>
-                    <el-image :src="valuess.split('@name:')[0]" fit="fill" class="img_show1" />
+                  <div v-else @click="download(valuess)">
+                      <div class="image_shuru_box1">
+                        <span class="image_span1">{{ valuess.name }}</span>
+                        <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
+                      </div>
                   </div>
                 </div>
               </div>
@@ -51,14 +51,14 @@
             <div class="message1" v-if="value.fromuser == user?.user.ip">
               <div v-if="(value.message.file.length !== 0 && !value.message.text) ? true : false">
                 <div v-for="valuess in value.message.file">
-                  <div
-                    v-if="(valuess.split('@type:')[1] === 'jpg' || valuess.split('@type:')[1] === 'png') ? true : false">
-                    <el-image :src="valuess.split('@name:')[0]" fit="fill" class="img_show" />
+                  <div v-if="(valuess.type === 'jpg' || valuess.type === 'png') ? true : false">
+                    <el-image :src="valuess.showurl" fit="fill" class="img_show" />
                   </div>
-                  <div v-else class="image_shuru_box1" @click="download(valuess)">
-                    <span class="image_span1">{{ valuess.split('@name:')[1].split('@data:')[0].split('@type:')[0]
-                    }}</span>
-                    <el-image :src="valuess.split('@name:')[0]" fit="fill" class="img_show1" />
+                  <div v-else @click="download(valuess)">
+                      <div class="image_shuru_box1">
+                        <span class="image_span1">{{ valuess.name }}</span>
+                        <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
+                      </div>
                   </div>
                 </div>
               </div>
@@ -67,18 +67,18 @@
               </div>
               <div class="message_box2" v-if="(value.message.file.length !== 0 && value.message.text) ? true : false">
                 <span class="message_box2_sapn">
-                  {{ value.message.text}}
+                  {{ value.message.text }}
                 </span>
                 <br>
                 <div v-for="valuess in value.message.file">
-                  <div
-                    v-if="(valuess.split('@type:')[1] === 'jpg' || valuess.split('@type:')[1] === 'png') ? true : false">
-                    <el-image :src="valuess.split('@name:')[0]" fit="fill" class="img_show" />
+                  <div v-if="(valuess.type === 'jpg' || valuess.type === 'png') ? true : false">
+                    <el-image :src="valuess.showurl" fit="fill" class="img_show" />
                   </div>
-                  <div v-else class="image_shuru_box1" @click="download(valuess)">
-                    <span class="image_span1">{{ valuess.split('@name:')[1].split('@data:')[0].split('@type:')[0]
-                    }}</span>
-                    <el-image :src="valuess.split('@name:')[0]" fit="fill" class="img_show1" />
+                  <div v-else @click="download(valuess)">
+                      <div class="image_shuru_box1">
+                        <span class="image_span1">{{ valuess.name }}</span>
+                        <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
+                      </div>
                   </div>
                 </div>
               </div>
@@ -94,9 +94,8 @@
           <el-scrollbar :always="false">
             <div v-if="url.length !== 0 ? true : false">
               <div v-for="values in url" class="image_shuru_box">
-                <span class="image_span">{{ values.split('@name:')[1].split('@data:')[0].split('@type:')[0] }}</span>
-                <el-image style="width: 80px; height: 80px" fit="fill" :src="values.split('@name:')[0]"
-                  class="image_box1">
+                <span class="image_span">{{ values.name }}</span>
+                <el-image style="width: 80px; height: 80px" fit="fill" :src="values.showurl" class="image_box1">
                 </el-image>
               </div>
             </div>
@@ -115,7 +114,18 @@
 import { ref, reactive, toRefs, onMounted, nextTick } from 'vue'
 import { io } from 'socket.io-client'
 import { ElMessage, ElScrollbar } from 'element-plus'
-import { downloadfiles } from '../../api/index'
+import {downloadfiles} from '../../api/index'
+import SparkMD5 from 'spark-md5'
+type file_show_type = Record<string, string>
+let file_show: file_show_type = {
+  'txt': '../../../image/txt.jpg',
+  'rar': '../../../image/rar.webp',
+  'zip': '../../../image/rar.webp',
+  'pdf': '../../../image/pdf.png',
+  'doc': '../../../image/word.jpg',
+  'docx': '../../../image/word.jpg',
+  'tar': '../../../image/rar.webp'
+}
 const input_scroll = ref<InstanceType<typeof ElScrollbar>>()
 const chat_box = ref<HTMLDivElement>()
 onMounted(async () => {
@@ -123,12 +133,25 @@ onMounted(async () => {
     input_scroll.value?.setScrollTop(input_scroll.value.wrapRef?.scrollHeight as number)
   }, 30)
 })
+interface url_type {
+  showurl: string,
+  name: string,
+  type: string,
+  data?: Blob,
+}
+interface file_type {
+  showurl: string,
+  name: string,
+  hash: string,
+  type: string,
+  url: string
+}
 interface messageinfos_type {
   id?: number,
   fromuser: string,
   message: {
     text: string,
-    file: string[]
+    file: file_type[]
   },
   time?: string
 }
@@ -143,17 +166,28 @@ interface user_type {
   time: number,
   type: string
 }
-interface data_type {
+interface sendmessage_type {
   text: string,
-  file: string[]
+  hash: string,
+  size: number,
+  chunk: ArrayBuffer,
+  curindex: number,
+  name: string,
 }
 let messageinfos = ref<messageinfos_type[]>([])
 let user = ref<userinfo_type>()
 let updatenumber = ref(0)
-let url = ref<string[]>([])
+let url = ref<url_type[]>([])
 let socket = io('http://192.168.10.2:5566')
+let sendmessage: sendmessage_type = {
+  text: '',
+  hash: '',
+  size: 0,
+  chunk: new ArrayBuffer(0),
+  curindex: -1,
+  name: '',
+}
 const input = ref('')
-let isshow = ref(false)
 let islayze = ref(true)
 let vhs = ref()
 const scroll = (value: any) => {
@@ -170,13 +204,27 @@ socket.on('getmessage', (arg1) => {
   if (arg1.length === 0) {
     islayze.value = false
   }
-  messageinfos.value.unshift(...arg1)
-  console.log(messageinfos.value)
+  let data = arg1.map((item: any) => {
+    item.message.file.forEach((items: any, index: number) => {
+      if (items.type === 'jpg' || items.type === 'png') {
+        item.message.file[index].showurl = items.url
+      }
+      else {
+        item.message.file[index].showurl = file_show[items.type]
+      }
+    })
+    return item
+  })
+  messageinfos.value.unshift(...data)
 })
 socket.on('sendmessage', (arg1, arg2) => {
+  let data = arg1.map((item: any) => {
+    item.showurl = file_show[item.type]
+    return item
+  })
   messageinfos.value.push({
     fromuser: arg2.ip,
-    message: arg1
+    message: data
   })
 })
 socket.io.on('error', (error) => {
@@ -235,29 +283,164 @@ socket.on('loginoutsibai', (arg1) => {
 socket.on('disconnect', (reason) => {
   console.log('socket.io断开的原因', ':', reason,)
 })
-const send = (isbutton: boolean, e: any) => {
-  const sendinfo = () => {
-    messageinfos.value.push({
-      fromuser: user.value?.user.ip as string,
-      message: {
-        text: input.value,
-        file: url.value
+const hash_hander = (file: any, SIZE: number) => {
+  return new Promise((resolve, reject) => {
+    const chunks_length = Math.ceil(file.size / SIZE)
+    const reader = new FileReader()
+    reader.readAsArrayBuffer(file)
+    const spark = new SparkMD5.ArrayBuffer()
+    reader.onload = (e) => {
+      let result = e.target?.result
+      for (let i = 0; i < chunks_length; i++) {
+        let start = i * SIZE
+        let end = (i + 1) * SIZE > file.size ? file.size : (i + 1) * SIZE
+        let cur_blob = result?.slice(start, end)
+        spark.append(cur_blob as ArrayBuffer)
+      }
+      const hash = spark.end()
+      resolve(hash)
+    }
+  })
+}
+const socket_sync = (data: any) => {
+  return new Promise((resolve, reject) => {
+    socket.emit('message', data, (istrue: any) => {
+      if (istrue.status === 1) {
+        resolve(istrue.data)
+      }
+      else {
+        reject(istrue.data)
       }
     })
-    let data: data_type = {
-      text: input.value,
-      file: []
+  })
+}
+const verty_sync=(hash:string,name:string)=>{
+  return new Promise((resolve,reject)=>{
+    socket.emit('verty',hash,name,(ishave:string)=>{
+    resolve(ishave)
+  })
+  })
+}
+const handerfile = (file: any, type: string) => {
+  return new Promise(async (resolve, reject) => {
+    const SIZE = 1024 * 1024 * 2
+    const chunks_length = Math.ceil(file.size / SIZE)
+    const reader = new FileReader()
+    const hash = await hash_hander(file, SIZE)
+    const m:any=await verty_sync(hash as string,file.name)
+    let has_file:any[]=[]
+    if(!m.status){
+      let data={
+        hash:hash,
+        name:file.name,
+        type:type,
+        url:m.data.url
+      }
+      has_file=m.data.data
+      resolve(data)
+      return
     }
-    if (isshow.value) {
-      data.file = url.value
+    else{
+      if(m.status===2){
+        m.data.data.forEach((item:any,index:any)=>{
+          m.data.data[index]=item.replace(`${hash}`,'')
+        })
+        has_file=m.data.data
+      }
+      else{
+        console.log('@@@')
+        has_file=m.data.data
+      }
     }
-    socket.emit('message', data)
+    reader.readAsArrayBuffer(file)
+    let socket_renwu: any = []
+    reader.onload = async (e) => {
+      let result = e.target?.result
+      for (let i = 0; i < chunks_length; i++) {
+        if(has_file.includes(i)){
+          break
+        }
+        let start = i * SIZE
+        let end = (i + 1) * SIZE > file.size ? file.size : (i + 1) * SIZE
+        let cur_blob = result?.slice(start, end)
+        sendmessage = {
+          text: '',
+          hash: hash as string,
+          size: chunks_length,
+          chunk: cur_blob as ArrayBuffer,
+          curindex: i + 1,
+          name: file.name,
+        }
+        socket_renwu.push(socket_sync(sendmessage))
+      }
+      await Promise.all(socket_renwu).then(() => {
+        socket.emit('merge', hash, chunks_length, file.name, (istrue: any) => {
+          if (istrue.status === 1) {
+            let data = {
+              hash: hash,
+              name: file.name,
+              type: type,
+              url: istrue.data
+            }
+            resolve(data)
+          }
+          else{
+            reject(istrue.data)
+          }
+        })
+      })
+      sendmessage = {
+        text: '',
+        hash: '',
+        size: 0,
+        chunk: new ArrayBuffer(0),
+        curindex: -1,
+        name: '',
+      }
+    }
+  })
+}
+const send = (isbutton: boolean, e: any) => {
+  const sendinfo = async () => {
+    if (url.value.length) {
+      let chunkss: any = []
+      url.value.forEach((item) => {
+        chunkss.push(handerfile(item.data, item.type))
+      })
+      await Promise.all(chunkss).then((values) => {
+        values.forEach((item, index) => {
+          if (item.type === 'jpg' || item.type === 'png') {
+            values[index].showurl = item.url
+          }
+          else {
+            values[index].showurl = file_show[item.type]
+          }
+        })
+        messageinfos.value.push({
+          fromuser: user.value?.user.ip as string,
+          message: {
+            text: input.value,
+            file: values
+          }
+        })
+        socket.emit('allsendsuccess', values, input.value)
+      })
+    }
+    else {
+      messageinfos.value.push({
+        fromuser: user.value?.user.ip as string,
+        message: {
+          text: input.value,
+          file: []
+        }
+      })
+      socket.emit('allsendsuccess', [], input.value)
+    }
     nextTick(() => {
       input_scroll.value?.setScrollTop(input_scroll.value.wrapRef?.scrollHeight as number)
     })
     input.value = ''
     url.value = []
-    isshow.value = false
   }
   if (isbutton) {
     sendinfo()
@@ -276,6 +459,7 @@ const send = (isbutton: boolean, e: any) => {
     }
   }
 }
+
 const pasthander = (e: any) => {
   var data = e.clipboardData
   if (!data.items) {
@@ -285,57 +469,53 @@ const pasthander = (e: any) => {
   if (items == null || items.length <= 0) {
     return
   }
-  let item = items[0]
-  if (item.kind === 'file') {
-    let m = item.getAsFile()
-    let type = m.name.split('.')[m.name.split('.').length - 1]
-    let type_schema = /^(txt|rar|jpg|png|zip|pdf|doc|docx)$/
-    let result = type_schema.test(type)
-    if (result) {
-      const reader = new FileReader()
-      reader.readAsArrayBuffer(m)
-      reader.onload = ((e) => {
-        let imgData = e.target?.result
-        let binary = ''
-        let bytes = new Uint8Array(imgData as any)
-        console.log('@', bytes)
-        let len = bytes.byteLength
-        for (var i = 0; i < len; i++) {
-          binary += String.fromCharCode(bytes[i])
+  for (let i = 0; i < items.length; i++) {
+    let item = items[i]
+    if (item.kind === 'file') {
+      let m = item.getAsFile()
+      let type = m.name.split('.')[m.name.split('.').length - 1]
+      let type_schema = /^(txt|rar|jpg|png|zip|pdf|doc|docx|tar)$/
+      let result = type_schema.test(type)
+      if (result) {
+        if (type == 'jpg' || type == 'png') {
+          const reader = new FileReader()
+          reader.readAsDataURL(m)
+          reader.onload = (e) => {
+            let result = e.target?.result
+            const data = {
+              showurl: result,
+              name: m.name,
+              type: type,
+              data: m,
+            }
+            url.value.push(data as url_type)
+          }
         }
-        let base64String
-        if (type === 'png') {
-          base64String = `data:image/png;base64,${window.btoa(binary)}@name:${m.name}@type:${type}`
+        else {
+          let result = file_show[type]
+          const data = {
+            showurl: result,
+            name: m.name,
+            type: type,
+            data: m,
+          }
+          url.value.push(data as url_type)
         }
-        if (type === 'jpg') {
-          base64String = `data:image/jpeg;base64,${window.btoa(binary)}@name:${m.name}@type:${type}`
-        }
-        if (type === 'txt') {
-          base64String = `../../../image/txt.jpg@name:${m.name}@data:${window.btoa(binary)}@type:${type}`
-        }
-        if (type === 'doc' || type === 'docx') {
-          base64String = `../../../image/word.jpg@name:${m.name}@data:${window.btoa(binary)}@type:${type}`
-        }
-        if (type === 'rar') {
-          base64String = `../../../image/rar.webp@name:${m.name}@data:${window.btoa(binary)}@type:${type}`
-        }
-        if (type === 'pdf') {
-          base64String = `../../../image/pdf.png@name:${m.name}@data:${window.btoa(binary)}@type:${type}`
-        }
-        if (type === 'zip') {
-          base64String = `../../../image/rar.webp@name:${m.name}@data:${window.btoa(binary)}@type:${type}`
-        }
-        url.value.push(base64String as string)
-        isshow.value = true
-      })
+      }
     }
   }
 }
 const download = async (content: any) => {
+  console.log(content)
+  const uploadEvent=(progressEvent:any)=>{
+    console.log(progressEvent)
+  }
   const m = await downloadfiles({
-    file_name: content.split('@data:')[1].split('@type:')[0],
-    file_type: content.split('@type:')[1]
-  })
+    file_hash:content.hash,
+    file_name:content.name,
+    file_path:content.url,
+    file_type:content.type
+  },uploadEvent)
   type content_type_type = Record<string, string>
   const content_type: content_type_type = {
     'doc': 'application/msword',
@@ -346,20 +526,18 @@ const download = async (content: any) => {
     'pdf': 'application/pdf'
   }
   if (m.status === 200) {
-    var blob = new Blob([m.data], { type: content_type[content.split('@type:')[1]] })
+    var blob = new Blob([m.data])
     var url = window.URL.createObjectURL(blob)
     var a = document.createElement('a')
     a.href = url
     a.style.display = 'none'
-    a.download = content.split('@data:')[1].split('@type:')[0].replace('http://192.168.10.2:5566/imageSave/', '')
+    a.download =content.hash+content.name
     a.click()
     window.URL.revokeObjectURL(url);
-    console.log(blob)
   }
 }
 const drophander = (e: any) => {
   e.preventDefault()
-  console.log(e)
 }
 vhs.value = window.innerHeight * 0.01
 </script>
@@ -424,10 +602,12 @@ vhs.value = window.innerHeight * 0.01
   display: flex;
   vertical-align: center;
 }
-.message_box2_sapn{
-    white-space: pre-wrap;
-    word-break: break-all;
+
+.message_box2_sapn {
+  white-space: pre-wrap;
+  word-break: break-all;
 }
+
 @media (min-width:550px) {
   .card-header {
     display: flex;
@@ -435,6 +615,7 @@ vhs.value = window.innerHeight * 0.01
     justify-content: space-between;
     align-items: center;
   }
+
   .input-box {
     width: 1300px;
     height: 70px;
@@ -442,10 +623,10 @@ vhs.value = window.innerHeight * 0.01
     display: flex;
     left: 50%;
     transform: translateX(-50%);
-    bottom:0;
+    bottom: 0;
     background-color: grey;
     z-index: 1000;
-    padding-left:120px ;
+    padding-left: 120px;
   }
 
   .input_div {
@@ -477,8 +658,9 @@ vhs.value = window.innerHeight * 0.01
     border-radius: 20px;
     padding: 10px;
   }
-  .message_box2{
-    max-width:160px;
+
+  .message_box2 {
+    max-width: 160px;
     background-color: rgba(0, 0, 255, 0.55);
     border-radius: 20px;
     padding: 10px;
@@ -492,7 +674,8 @@ vhs.value = window.innerHeight * 0.01
     border-radius: 20px;
     padding: 10px;
   }
-  .message_box3{
+
+  .message_box3 {
     max-width: 160px;
     background-color: rgba(128, 128, 128, 0.287);
     border-radius: 20px;
@@ -535,7 +718,7 @@ vhs.value = window.innerHeight * 0.01
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp:2;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
   }
 
@@ -561,6 +744,7 @@ vhs.value = window.innerHeight * 0.01
     flex: 1;
     margin: 10px 0 0 10px;
   }
+
   .show_scrollbar {
     height: 650px;
   }
@@ -628,7 +812,8 @@ vhs.value = window.innerHeight * 0.01
     border-radius: 20px;
     padding: 1vh 1vw;
   }
-  .message_box3{
+
+  .message_box3 {
     max-width: 24vw;
     background-color: rgba(128, 128, 128, 0.206);
     border-radius: 20px;
@@ -646,6 +831,7 @@ vhs.value = window.innerHeight * 0.01
     height: 6vh;
     border-radius: 20px;
   }
+
   .image_shuru_box1 {
     background-color: rgba(255, 255, 255, 0.911);
     display: flex;
@@ -656,6 +842,7 @@ vhs.value = window.innerHeight * 0.01
     border-radius: 10px;
     margin: 1vh 0px;
   }
+
   .image_span1 {
     max-height: 5.2vh;
     max-width: 10vw;
@@ -668,9 +855,10 @@ vhs.value = window.innerHeight * 0.01
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp:2;
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
   }
+
   .image_span {
     line-height: 10vh;
     margin-right: 3vw;
@@ -703,10 +891,12 @@ vhs.value = window.innerHeight * 0.01
   .show_scrollbar {
     height: calc(100vh - 23vh);
   }
-  .message_box2{
+
+  .message_box2 {
     max-width: 24vw;
     background-color: rgba(0, 0, 255, 0.55);
     border-radius: 20px;
     padding: 0.5vh 0.5vw;
   }
-}</style>
+}
+</style>
