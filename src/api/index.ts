@@ -6,4 +6,4 @@ interface downloadfiles_type{
     file_type:string
 }
 type upload_event_type=(progressEvent:any)=>void
-export const downloadfiles=(data:downloadfiles_type,upload_event:upload_event_type)=>request({method:'post',url:'user/download_files',responseType:'blob',data,onUploadProgress:upload_event})
+export const downloadfiles=(data:downloadfiles_type,download_event:upload_event_type)=>request({method:'post',url:'user/download_files',responseType:'blob',data,onDownloadProgress:download_event})

@@ -20,10 +20,10 @@
                     <el-image :src="valuess.showurl" fit="fill" class="img_show" />
                   </div>
                   <div v-else class="image_shuru_box1" @click="download(valuess)">
-                      <div class="image_shuru_box1">
-                        <span class="image_span1">{{ valuess.name }}</span>
-                        <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
-                      </div>
+                    <div class="image_shuru_box1">
+                      <span class="image_span1">{{ valuess.name }}</span>
+                      <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -40,10 +40,10 @@
                     <el-image :src="valuess.showurl" fit="fill" class="img_show" />
                   </div>
                   <div v-else @click="download(valuess)">
-                      <div class="image_shuru_box1">
-                        <span class="image_span1">{{ valuess.name }}</span>
-                        <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
-                      </div>
+                    <div class="image_shuru_box1">
+                      <span class="image_span1">{{ valuess.name }}</span>
+                      <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -54,11 +54,15 @@
                   <div v-if="(valuess.type === 'jpg' || valuess.type === 'png') ? true : false">
                     <el-image :src="valuess.showurl" fit="fill" class="img_show" />
                   </div>
-                  <div v-else @click="download(valuess)">
-                      <div class="image_shuru_box1">
-                        <span class="image_span1">{{ valuess.name }}</span>
-                        <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
-                      </div>
+                  <div v-else @click="download(valuess)" class="file_box">
+                    <div class="image_shuru_box1">
+                      <span class="image_span1">{{ valuess.name }}</span>
+                      <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
+                      <el-progress :percentage="valuess.progress" class="progress"
+                        v-if="(valuess.progress >= 0 && valuess.progress <= 100) ? true:false" />
+                      <el-progress :percentage="downloadpropers" class="progress"
+                        v-if="(downloadpropers >= 0 && downloadpropers <= 100) ? true : false"></el-progress>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -75,10 +79,12 @@
                     <el-image :src="valuess.showurl" fit="fill" class="img_show" />
                   </div>
                   <div v-else @click="download(valuess)">
-                      <div class="image_shuru_box1">
-                        <span class="image_span1">{{ valuess.name }}</span>
-                        <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
-                      </div>
+                    <div class="image_shuru_box1">
+                      <span class="image_span1">{{ valuess.name }}</span>
+                      <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
+                      <el-progress :percentage="valuess.progress" class="progress"
+                        v-if="(valuess.progress >= 0 && valuess.progress <= 100) ? true : false" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -100,7 +106,8 @@
               </div>
             </div>
             <input type="text" class="input_input" v-model="input" placeholder="输入内容" @keyup.prevent="send(false, $event)"
-              @paste="pasthander($event)" />
+              @paste="pasthander($event)" @compositionstart="compositionstart_hander"
+              @compositionend="compositionend_hander" />
           </el-scrollbar>
         </div>
         <el-button type="primary" round class="input-button" @click.prevent="send(true, $event)"
@@ -114,7 +121,7 @@
 import { ref, reactive, toRefs, onMounted, nextTick } from 'vue'
 import { io } from 'socket.io-client'
 import { ElMessage, ElScrollbar } from 'element-plus'
-import {downloadfiles} from '../../api/index'
+import { downloadfiles } from '../../api/index'
 import SparkMD5 from 'spark-md5'
 type file_show_type = Record<string, string>
 let file_show: file_show_type = {
@@ -133,6 +140,10 @@ onMounted(async () => {
     input_scroll.value?.setScrollTop(input_scroll.value.wrapRef?.scrollHeight as number)
   }, 30)
 })
+interface progress_type {
+  hash: string,
+  progress: number
+}
 interface url_type {
   showurl: string,
   name: string,
@@ -142,9 +153,11 @@ interface url_type {
 interface file_type {
   showurl: string,
   name: string,
-  hash: string,
+  hash?: string,
   type: string,
-  url: string
+  url?: string,
+  progress: number,
+  size: number
 }
 interface messageinfos_type {
   id?: number,
@@ -153,7 +166,7 @@ interface messageinfos_type {
     text: string,
     file: file_type[]
   },
-  time?: string
+  time?: string,
 }
 interface userinfo_type {
   token: string,
@@ -174,6 +187,10 @@ interface sendmessage_type {
   curindex: number,
   name: string,
 }
+let doing = ref(false)
+let downloadpropers = ref(-1)
+let pause = ref(false)
+let progress = ref<progress_type[]>([])
 let messageinfos = ref<messageinfos_type[]>([])
 let user = ref<userinfo_type>()
 let updatenumber = ref(0)
@@ -302,11 +319,16 @@ const hash_hander = (file: any, SIZE: number) => {
     }
   })
 }
-const socket_sync = (data: any) => {
+const socket_sync = (data: any, progressdata: any) => {
   return new Promise((resolve, reject) => {
     socket.emit('message', data, (istrue: any) => {
       if (istrue.status === 1) {
         resolve(istrue.data)
+        progressdata.value.message.file.forEach((item: any, index: number) => {
+          let jindu = 1 / data.size * 100
+          item.progress += jindu
+          item.progress = Math.ceil(item.progress) > 100 ? 100 : Math.ceil(item.progress)
+        })
       }
       else {
         reject(istrue.data)
@@ -314,42 +336,55 @@ const socket_sync = (data: any) => {
     })
   })
 }
-const verty_sync=(hash:string,name:string)=>{
-  return new Promise((resolve,reject)=>{
-    socket.emit('verty',hash,name,(ishave:string)=>{
-    resolve(ishave)
-  })
+const verty_sync = (hash: string, name: string) => {
+  return new Promise((resolve, reject) => {
+    socket.emit('verty', hash, name, (ishave: string) => {
+      resolve(ishave)
+    })
   })
 }
-const handerfile = (file: any, type: string) => {
+const handerfile = (file: any, type: string, showurl: string, progressdata: any) => {
   return new Promise(async (resolve, reject) => {
     const SIZE = 1024 * 1024 * 2
     const chunks_length = Math.ceil(file.size / SIZE)
     const reader = new FileReader()
     const hash = await hash_hander(file, SIZE)
-    const m:any=await verty_sync(hash as string,file.name)
-    let has_file:any[]=[]
-    if(!m.status){
-      let data={
-        hash:hash,
-        name:file.name,
-        type:type,
-        url:m.data.url
+    let datas = ref<file_type>({
+      showurl: showurl,
+      name: file.name,
+      hash: hash as string,
+      type: type,
+      progress: 0,
+      size: file.size
+    })
+    progressdata.value.message.file.push(datas.value)
+    const m: any = await verty_sync(hash as string, file.name)
+    let has_file: any[] = []
+    if (!m.status) {
+      let data = {
+        hash: hash,
+        name: file.name,
+        type: type,
+        url: m.data.url,
+        progress: 101
       }
-      has_file=m.data.data
+      datas.value.progress = 100
+      setTimeout(() => {
+        datas.value.progress = 101
+      }, 2000)
+      has_file = m.data.data
       resolve(data)
       return
     }
-    else{
-      if(m.status===2){
-        m.data.data.forEach((item:any,index:any)=>{
-          m.data.data[index]=item.replace(`${hash}`,'')
+    else {
+      if (m.status === 2) {
+        m.data.data.forEach((item: any, index: any) => {
+          m.data.data[index] = item.replace(`${hash}`, '')
         })
-        has_file=m.data.data
+        has_file = m.data.data
       }
-      else{
-        console.log('@@@')
-        has_file=m.data.data
+      else {
+        has_file = m.data.data
       }
     }
     reader.readAsArrayBuffer(file)
@@ -357,7 +392,7 @@ const handerfile = (file: any, type: string) => {
     reader.onload = async (e) => {
       let result = e.target?.result
       for (let i = 0; i < chunks_length; i++) {
-        if(has_file.includes(i)){
+        if (has_file.includes(i)) {
           break
         }
         let start = i * SIZE
@@ -371,7 +406,7 @@ const handerfile = (file: any, type: string) => {
           curindex: i + 1,
           name: file.name,
         }
-        socket_renwu.push(socket_sync(sendmessage))
+        socket_renwu.push(socket_sync(sendmessage, progressdata))
       }
       await Promise.all(socket_renwu).then(() => {
         socket.emit('merge', hash, chunks_length, file.name, (istrue: any) => {
@@ -380,14 +415,21 @@ const handerfile = (file: any, type: string) => {
               hash: hash,
               name: file.name,
               type: type,
-              url: istrue.data
+              url: istrue.data,
+              progress: 101,
+              size: file.size
             }
+            setTimeout(() => {
+              datas.value.progress = 101
+            }, 2000)
             resolve(data)
           }
-          else{
+          else {
             reject(istrue.data)
           }
         })
+      }).catch((message) => {
+        console.log(message)
       })
       sendmessage = {
         text: '',
@@ -404,26 +446,32 @@ const send = (isbutton: boolean, e: any) => {
   const sendinfo = async () => {
     if (url.value.length) {
       let chunkss: any = []
-      url.value.forEach((item) => {
-        chunkss.push(handerfile(item.data, item.type))
+      let progressdata = ref<messageinfos_type>({
+        fromuser: user.value?.user.ip as string,
+        message: {
+          text: input.value,
+          file: []
+        },
       })
+      messageinfos.value.push(progressdata.value)
+      url.value.forEach((item) => {
+        chunkss.push(handerfile(item.data, item.type, item.showurl, progressdata))
+      })
+      nextTick(() => {
+        input_scroll.value?.setScrollTop(input_scroll.value.wrapRef?.scrollHeight as number)
+      })
+      let textvalue = input.value
+      input.value = ''
+      url.value = []
       await Promise.all(chunkss).then((values) => {
-        values.forEach((item, index) => {
-          if (item.type === 'jpg' || item.type === 'png') {
-            values[index].showurl = item.url
-          }
-          else {
-            values[index].showurl = file_show[item.type]
-          }
+        progressdata.value.message.file.forEach((item, index) => {
+          values.forEach((item1, index1) => {
+            if (item.hash === item1.hash) {
+              progressdata.value.message.file[index].url = item1.url
+            }
+          })
         })
-        messageinfos.value.push({
-          fromuser: user.value?.user.ip as string,
-          message: {
-            text: input.value,
-            file: values
-          }
-        })
-        socket.emit('allsendsuccess', values, input.value)
+        socket.emit('allsendsuccess', values, textvalue)
       })
     }
     else {
@@ -435,12 +483,8 @@ const send = (isbutton: boolean, e: any) => {
         }
       })
       socket.emit('allsendsuccess', [], input.value)
+      input.value = ''
     }
-    nextTick(() => {
-      input_scroll.value?.setScrollTop(input_scroll.value.wrapRef?.scrollHeight as number)
-    })
-    input.value = ''
-    url.value = []
   }
   if (isbutton) {
     sendinfo()
@@ -453,8 +497,10 @@ const send = (isbutton: boolean, e: any) => {
       sendinfo()
     }
     if (e.keyCode === 8) {
-      if (!input.value && url.value.length !== 0) {
-        url.value.pop()
+      if (!doing.value) {
+        if (!input.value && url.value.length !== 0) {
+          url.value.pop()
+        }
       }
     }
   }
@@ -507,15 +553,21 @@ const pasthander = (e: any) => {
 }
 const download = async (content: any) => {
   console.log(content)
-  const uploadEvent=(progressEvent:any)=>{
-    console.log(progressEvent)
+  const uploadEvent = (progressEvent: any) => {
+    downloadpropers.value = Math.ceil(progressEvent.loaded / content.size * 100) > 100 ? 100 : Math.ceil(progressEvent.loaded / content.size * 100)
+    console.log(downloadpropers.value)
+    if (downloadpropers.value == 100) {
+      setTimeout(() => {
+        downloadpropers.value = 101
+      }, 2000)
+    }
   }
   const m = await downloadfiles({
-    file_hash:content.hash,
-    file_name:content.name,
-    file_path:content.url,
-    file_type:content.type
-  },uploadEvent)
+    file_hash: content.hash,
+    file_name: content.name,
+    file_path: content.url,
+    file_type: content.type
+  }, uploadEvent)
   type content_type_type = Record<string, string>
   const content_type: content_type_type = {
     'doc': 'application/msword',
@@ -531,10 +583,16 @@ const download = async (content: any) => {
     var a = document.createElement('a')
     a.href = url
     a.style.display = 'none'
-    a.download =content.hash+content.name
+    a.download = content.hash + content.name
     a.click()
     window.URL.revokeObjectURL(url);
   }
+}
+const compositionstart_hander = () => {
+  doing.value = true
+}
+const compositionend_hander = () => {
+  doing.value = false
 }
 const drophander = (e: any) => {
   e.preventDefault()
@@ -609,6 +667,13 @@ vhs.value = window.innerHeight * 0.01
 }
 
 @media (min-width:550px) {
+  .progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+  }
+
   .card-header {
     display: flex;
     height: 10px;
@@ -698,6 +763,7 @@ vhs.value = window.innerHeight * 0.01
   .image_shuru_box1 {
     background-color: rgba(255, 255, 255, 0.911);
     display: flex;
+    position: relative;
     max-width: 140px;
     justify-content: space-around;
     vertical-align: center;
