@@ -2,13 +2,12 @@
   <el-card class="box-card">
     <template #header>
       <div class="card-header">
-        <span>聊天室名称</span>
-        <el-button class="button" text>Operation button</el-button>
+        <span>用户名：{{ user?.user.ip }}</span>
       </div>
     </template>
     <div class="chat-box" ref="chat_box" @drop.stop="drophander($event)">
       <ul>
-        <el-scrollbar ref="input_scroll" @scroll="scroll" always class="show_scrollbar">
+        <el-scrollbar ref="input_scroll" @scroll="scroll" class="show_scrollbar">
           <li v-for="value in messageinfos" :key="value.id" class="chat_li">
             <div class="message" v-if="value.fromuser != user?.user.ip">
               <div class="message_user">
@@ -23,6 +22,8 @@
                     <div class="image_shuru_box1">
                       <span class="image_span1">{{ valuess.name }}</span>
                       <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
+                      <el-progress :percentage="valuess.downprogress" class="progress"
+                        v-if="(valuess.downprogress && valuess.downprogress >= 0 && valuess.downprogress <= 100) ? true : false"></el-progress>
                     </div>
                   </div>
                 </div>
@@ -43,6 +44,8 @@
                     <div class="image_shuru_box1">
                       <span class="image_span1">{{ valuess.name }}</span>
                       <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
+                      <el-progress :percentage="valuess.downprogress" class="progress"
+                        v-if="(valuess.downprogress && valuess.downprogress >= 0 && valuess.downprogress <= 100) ? true : false"></el-progress>
                     </div>
                   </div>
                 </div>
@@ -59,9 +62,9 @@
                       <span class="image_span1">{{ valuess.name }}</span>
                       <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
                       <el-progress :percentage="valuess.progress" class="progress"
-                        v-if="(valuess.progress >= 0 && valuess.progress <= 100) ? true:false" />
-                      <el-progress :percentage="downloadpropers" class="progress"
-                        v-if="(downloadpropers >= 0 && downloadpropers <= 100) ? true : false"></el-progress>
+                        v-if="(valuess.progress >= 0 && valuess.progress <= 100) ? true : false" />
+                      <el-progress :percentage="valuess.downprogress" class="progress"
+                        v-if="(valuess.downprogress && valuess.downprogress >= 0 && valuess.downprogress <= 100) ? true : false"></el-progress>
                     </div>
                   </div>
                 </div>
@@ -84,6 +87,8 @@
                       <el-image :src="valuess.showurl" fit="fill" class="img_show1" />
                       <el-progress :percentage="valuess.progress" class="progress"
                         v-if="(valuess.progress >= 0 && valuess.progress <= 100) ? true : false" />
+                      <el-progress :percentage="valuess.downprogress" class="progress"
+                        v-if="(valuess.downprogress && valuess.downprogress >= 0 && valuess.downprogress <= 100) ? true : false"></el-progress>
                     </div>
                   </div>
                 </div>
@@ -118,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, toRefs, onMounted, nextTick } from 'vue'
+import { ref, onMounted, nextTick, onBeforeUpdate } from 'vue'
 import { io } from 'socket.io-client'
 import { ElMessage, ElScrollbar } from 'element-plus'
 import { downloadfiles } from '../../api/index'
@@ -138,17 +143,13 @@ const chat_box = ref<HTMLDivElement>()
 onMounted(async () => {
   setTimeout(() => {
     input_scroll.value?.setScrollTop(input_scroll.value.wrapRef?.scrollHeight as number)
-  }, 30)
+  }, 50)
 })
-interface progress_type {
-  hash: string,
-  progress: number
-}
 interface url_type {
   showurl: string,
   name: string,
   type: string,
-  data?: Blob,
+  data: Blob,
 }
 interface file_type {
   showurl: string,
@@ -157,7 +158,8 @@ interface file_type {
   type: string,
   url?: string,
   progress: number,
-  size: number
+  size: number,
+  downprogress?: number
 }
 interface messageinfos_type {
   id?: number,
@@ -188,9 +190,6 @@ interface sendmessage_type {
   name: string,
 }
 let doing = ref(false)
-let downloadpropers = ref(-1)
-let pause = ref(false)
-let progress = ref<progress_type[]>([])
 let messageinfos = ref<messageinfos_type[]>([])
 let user = ref<userinfo_type>()
 let updatenumber = ref(0)
@@ -206,7 +205,6 @@ let sendmessage: sendmessage_type = {
 }
 const input = ref('')
 let islayze = ref(true)
-let vhs = ref()
 const scroll = (value: any) => {
   if (value.scrollTop < 20 && islayze.value) {
     updatenumber.value++
@@ -215,7 +213,7 @@ const scroll = (value: any) => {
 }
 socket.on('loginsuccess', (arg1) => {
   user.value = arg1
-  localStorage.setItem('token', user.value?.token as string)
+  localStorage.setItem('token',user.value?.token as string)
 })
 socket.on('getmessage', (arg1) => {
   if (arg1.length === 0) {
@@ -235,13 +233,18 @@ socket.on('getmessage', (arg1) => {
   messageinfos.value.unshift(...data)
 })
 socket.on('sendmessage', (arg1, arg2) => {
-  let data = arg1.map((item: any) => {
-    item.showurl = file_show[item.type]
-    return item
+  console.log(arg1, arg2)
+  arg1.file.forEach((item: any, index: number) => {
+    if (item.type === 'jpg' || item.type === 'png') {
+      arg1.file[index].showurl = item.url
+    }
+    else {
+      arg1.file[index].showurl = file_show[item.type]
+    }
   })
   messageinfos.value.push({
     fromuser: arg2.ip,
-    message: data
+    message: arg1
   })
 })
 socket.io.on('error', (error) => {
@@ -269,12 +272,12 @@ socket.io.on('reconnect_failed', () => {
   })
 })
 socket.io.on('reconnect', (attempt) => {
+  messageinfos.value = []
   ElMessage({
     showClose: false,
     message: '重新连接成功',
     type: 'success'
   })
-
 })
 socket.on('system', (arg1, arg2) => {
   ElMessage({
@@ -319,16 +322,14 @@ const hash_hander = (file: any, SIZE: number) => {
     }
   })
 }
-const socket_sync = (data: any, progressdata: any) => {
+const socket_sync = (data: any, datas: any) => {
   return new Promise((resolve, reject) => {
     socket.emit('message', data, (istrue: any) => {
       if (istrue.status === 1) {
         resolve(istrue.data)
-        progressdata.value.message.file.forEach((item: any, index: number) => {
-          let jindu = 1 / data.size * 100
-          item.progress += jindu
-          item.progress = Math.ceil(item.progress) > 100 ? 100 : Math.ceil(item.progress)
-        })
+        let jindu = 1 / data.size * 100
+        datas.value.progress += jindu
+        datas.value.progress = Math.ceil(datas.value.progress) > 100 ? 100 : Math.ceil(datas.value.progress)
       }
       else {
         reject(istrue.data)
@@ -343,21 +344,13 @@ const verty_sync = (hash: string, name: string) => {
     })
   })
 }
-const handerfile = (file: any, type: string, showurl: string, progressdata: any) => {
+const handerfile = (file: any, type: string, showurl: string, datas: any) => {
   return new Promise(async (resolve, reject) => {
     const SIZE = 1024 * 1024 * 2
     const chunks_length = Math.ceil(file.size / SIZE)
     const reader = new FileReader()
     const hash = await hash_hander(file, SIZE)
-    let datas = ref<file_type>({
-      showurl: showurl,
-      name: file.name,
-      hash: hash as string,
-      type: type,
-      progress: 0,
-      size: file.size
-    })
-    progressdata.value.message.file.push(datas.value)
+    datas.value.hash=hash
     const m: any = await verty_sync(hash as string, file.name)
     let has_file: any[] = []
     if (!m.status) {
@@ -366,7 +359,8 @@ const handerfile = (file: any, type: string, showurl: string, progressdata: any)
         name: file.name,
         type: type,
         url: m.data.url,
-        progress: 101
+        progress: 101,
+        size: file.size
       }
       datas.value.progress = 100
       setTimeout(() => {
@@ -406,7 +400,7 @@ const handerfile = (file: any, type: string, showurl: string, progressdata: any)
           curindex: i + 1,
           name: file.name,
         }
-        socket_renwu.push(socket_sync(sendmessage, progressdata))
+        socket_renwu.push(socket_sync(sendmessage, datas))
       }
       await Promise.all(socket_renwu).then(() => {
         socket.emit('merge', hash, chunks_length, file.name, (istrue: any) => {
@@ -421,7 +415,7 @@ const handerfile = (file: any, type: string, showurl: string, progressdata: any)
             }
             setTimeout(() => {
               datas.value.progress = 101
-            }, 2000)
+            },2000)
             resolve(data)
           }
           else {
@@ -455,7 +449,16 @@ const send = (isbutton: boolean, e: any) => {
       })
       messageinfos.value.push(progressdata.value)
       url.value.forEach((item) => {
-        chunkss.push(handerfile(item.data, item.type, item.showurl, progressdata))
+        let datas = ref<file_type>({
+          showurl: item.showurl,
+          name: item.name,
+          hash:'',
+          type:item.type,
+          progress: 0,
+          size:item.data.size
+        })
+        progressdata.value.message.file.push(datas.value)
+        chunkss.push(handerfile(item.data, item.type, item.showurl, datas))
       })
       nextTick(() => {
         input_scroll.value?.setScrollTop(input_scroll.value.wrapRef?.scrollHeight as number)
@@ -483,6 +486,9 @@ const send = (isbutton: boolean, e: any) => {
         }
       })
       socket.emit('allsendsuccess', [], input.value)
+      nextTick(() => {
+        input_scroll.value?.setScrollTop(input_scroll.value.wrapRef?.scrollHeight as number)
+      })
       input.value = ''
     }
   }
@@ -552,13 +558,11 @@ const pasthander = (e: any) => {
   }
 }
 const download = async (content: any) => {
-  console.log(content)
   const uploadEvent = (progressEvent: any) => {
-    downloadpropers.value = Math.ceil(progressEvent.loaded / content.size * 100) > 100 ? 100 : Math.ceil(progressEvent.loaded / content.size * 100)
-    console.log(downloadpropers.value)
-    if (downloadpropers.value == 100) {
+    content.downprogress = Math.ceil(progressEvent.loaded / content.size * 100) > 100 ? 100 : Math.ceil(progressEvent.loaded / content.size * 100)
+    if (content.downprogress == 100) {
       setTimeout(() => {
-        downloadpropers.value = 101
+        content.downprogress = 101
       }, 2000)
     }
   }
@@ -568,15 +572,6 @@ const download = async (content: any) => {
     file_path: content.url,
     file_type: content.type
   }, uploadEvent)
-  type content_type_type = Record<string, string>
-  const content_type: content_type_type = {
-    'doc': 'application/msword',
-    'docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'txt': 'text/plain',
-    'rar': 'application/x-rar-compressed',
-    'zip': 'application/zip',
-    'pdf': 'application/pdf'
-  }
   if (m.status === 200) {
     var blob = new Blob([m.data])
     var url = window.URL.createObjectURL(blob)
@@ -597,7 +592,6 @@ const compositionend_hander = () => {
 const drophander = (e: any) => {
   e.preventDefault()
 }
-vhs.value = window.innerHeight * 0.01
 </script>
 <style>
 @media (min-width:550px) {
@@ -817,6 +811,13 @@ vhs.value = window.innerHeight * 0.01
 }
 
 @media (max-width:550px) {
+  .progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+  }
+
   .card-header {
     display: flex;
     height: 2vh;
@@ -901,6 +902,7 @@ vhs.value = window.innerHeight * 0.01
   .image_shuru_box1 {
     background-color: rgba(255, 255, 255, 0.911);
     display: flex;
+    position: relative;
     max-width: 24vw;
     justify-content: space-around;
     vertical-align: center;
